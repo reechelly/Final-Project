@@ -36,3 +36,17 @@ std::vector<Team> loadTeams(const std::string& filePath) {
     return teamList;
 }
 
+// Get random match time
+std::string getRandomTime() {
+    std::random_device rd;
+    std::mt19937 rng(rd());
+    std::uniform_int_distribution<int> hourDist(12, 19);
+    std::uniform_int_distribution<int> minDist(0, 1);
+
+    int hour = hourDist(rng);
+    int minute = (minDist(rng) == 0) ? 0 : 45;  // Random minute 00 or 45
+    std::stringstream ss;
+    ss << std::setw(2) << std::setfill('0') << hour << ":"
+       << std::setw(2) << std::setfill('0') << minute;
+    return ss.str();
+}
