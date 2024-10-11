@@ -82,4 +82,27 @@ void makeFixtures(const std::vector<Team>& teams, std::vector<std::tuple<Team, T
         ++week;
     }
 }
+void saveToCSV(const std::string& fileName, const std::vector<std::tuple<Team, Team, int, std::string>>& matches) {
+    std::ofstream outFile(fileName);
+    
+if (!outFile) {
+    std::cerr << "Oops! Couldn't write to file: " << fileName << std::endl;
+    return;
+}
+
+outFile << "WEEK: HOME TEAM x AWAY TEAM @ TOWN - STADIUM: TIME\n";
+for (const auto& match : matches) {
+    const Team& home = std::get<0>(match);
+    const Team& away = std::get<1>(match);
+    int week = std::get<2>(match);
+    const std::string& time = std::get<3>(match);
+
+    outFile << week << ": "
+            << home.name << " x "
+            << away.name << " @ "
+            << home.stadium << " - "
+            << home.town << " => "
+            << time << "\n";
+}
+}
 
