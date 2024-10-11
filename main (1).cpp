@@ -36,17 +36,50 @@ std::vector<Team> loadTeams(const std::string& filePath) {
     return teamList;
 }
 
-// Get random match time
-std::string getRandomTime() {
+// Create all the matchups "mine"
+void makeFixtures(const std::vector<Team>& teams, std::vector<std::tuple<Team, Team, int, std::string>>& matches) {
+    std::vector<std::pair<Team, Team>> games;
+
+    // Home and away matches
+    for (size_t i = 0; i < teams.size(); ++i) {
+        for (size_t j = i + 1; j < teams.size(); ++j) {
+            games.push_back({teams[i], teams[j]});
+            games.push_back({teams[j], teams[i]});
+        }
+    }
+
+    // Shuffle the games
     std::random_device rd;
     std::mt19937 rng(rd());
-    std::uniform_int_distribution<int> hourDist(12, 19);
-    std::uniform_int_distribution<int> minDist(0, 1);
+    std::shuffle(games.begin(), games.end(), rng);
 
-    int hour = hourDist(rng);
-    int minute = (minDist(rng) == 0) ? 0 : 45;  // Random minute 00 or 45
-    std::stringstream ss;
-    ss << std::setw(2) << std::setfill('0') << hour << ":"
-       << std::setw(2) << std::setfill('0') << minute;
-    return ss.str();
+    int week = 1;
+    while (!games.empty()) {
+        std::unordered_set<std::string> busyTeams;
+        std::vector<std::pair<Team, Team>> thisWeekGames;
+
+        for (auto it = games.begin(); it != games.end();) {
+            const Team& home = it->first;
+            const Team& away = it->second;
+
+            if (busyTeams.find(home.name) == busyTeams.end() &&
+                busyTeams.find(away.name) == busyTeams.end()) {
+                thisWeekGames.push_back(*it);
+                busyTeams.insert(home.name);
+                busyTeams.insert(away.name);
+                it = games.erase(it);
+                if (thisWeekGames.size() == 2) break;  // Limit 2 games per week
+            } else {
+                ++it;
+            }
+        }
+
+        // Add games with random time
+        for (const auto& game : thisWeekGames) {
+            std::string matchTime = getRandomTime();
+            matches.push_back(std::make_tuple(game.first, game.second, week, matchTime));
+        }
+        ++week;
+    }
 }
+
